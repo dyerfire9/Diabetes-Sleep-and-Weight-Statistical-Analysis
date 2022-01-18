@@ -1,0 +1,628 @@
+---
+title: "Exploration Of The Relationship Between Diabetes, Sleep, and Weight"
+author: "Muhammad Abdul Mannan"
+date: "23/08/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, include=FALSE}
+
+library(opendatatoronto)
+library(tidyverse)
+library(janitor)
+library(skimr)
+library(visdat)
+library("ggplot2")
+
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+dataset <- read.csv("Dataset.csv")
+
+dataset <- dataset %>% select(DHH_SEX, DHHGMS, DHHDGHSZ, HWTDGWTK, HWTDGISW, HWTDGHTM, PAADVACV, SLPG005, SLP_020, INCDGPER, ALC_020, CCCG100 ,DOCP2, GENDVHDI, GEN_010, GEN_015, GEN_020)
+
+# Rename the columns for ease of use
+dataset <- dataset %>% rename(sex = DHH_SEX, martial_stat = DHHGMS, household_size = DHHDGHSZ, weight = HWTDGWTK, height = HWTDGHTM, diabetes = CCCG100 ,bmi = HWTDGISW, income = INCDGPER, physical_activity = PAADVACV, daily_sleep = SLPG005, diff_sleep =  SLP_020 ,more_drinks = ALC_020, visit_doc = DOCP2, self_health = GENDVHDI, satisfact_life = GEN_010, self_mental_health = GEN_015, self_life_stress = GEN_020)
+
+# Clean the data by removing all rows with no entries
+dataset <- dataset %>%  mutate(sex = ifelse(sex == 2, 'male', 'female')) %>%  filter(martial_stat != 9, household_size != 9, weight != 999.99, bmi != 9, income != 99, income != 96, physical_activity != 9, daily_sleep != 99, more_drinks != 99, self_health != 9, self_mental_health != 99, diabetes != 99)
+
+
+```
+
+```{r, include=FALSE}
+# Sleep Data
+set.seed(123)
+# Plot the sleep data, we have removed the valid skipped entries.
+sleep_data <- dataset %>% filter(daily_sleep != 96, diabetes == 96) %>% select(daily_sleep) 
+
+for (i in 1:length(sleep_data)){
+  if (sleep_data$daily_sleep[i] == 1){
+    sleep_data$daily_sleep[i] = sample(0:2,1,replace = TRUE)
+  }
+  if (sleep_data$daily_sleep[i] == 2){
+    sleep_data$daily_sleep[i] = sample(3,1,replace = TRUE)
+  }
+  if (sleep_data$daily_sleep[i] == 3){
+    sleep_data$daily_sleep[i] = sample(4,1,replace = TRUE)
+  }
+  if (sleep_data$daily_sleep[i] == 4){
+    sleep_data$daily_sleep[i] = sample(5,1,replace = TRUE)
+  }
+  if (sleep_data$daily_sleep[i] == 5){
+    sleep_data$daily_sleep[i] = sample(6,1,replace = TRUE)
+  }
+  if (sleep_data$daily_sleep[i] == 6){
+    sleep_data$daily_sleep[i] = sample(7,1,replace = TRUE)
+  }
+  if (sleep_data$daily_sleep[i] == 7){
+    sleep_data$daily_sleep[i] = sample(8,1,replace = TRUE)
+  }
+  if (sleep_data$daily_sleep[i] == 8){
+    sleep_data$daily_sleep[i] = sample(9,1,replace = TRUE)
+  }
+  if (sleep_data$daily_sleep[i] == 9){
+    sleep_data$daily_sleep[i] = sample(10,1,replace = TRUE)
+  }
+  if (sleep_data$daily_sleep[i] == 10){
+    sleep_data$daily_sleep[i] = sample(11,1,replace = TRUE)
+  }
+  if (sleep_data$daily_sleep[i] == 11){
+    sleep_data$daily_sleep[i] = sample(12:15,1,replace = TRUE)
+  }
+}
+
+```
+
+```{r, include=FALSE}
+
+# Diabetic Weight Data
+set.seed(123456)
+diabetic_weight_data <- dataset %>%  filter(diabetes != 96) %>% select(weight, diabetes)
+
+for (i in 1:8773) {
+  if (diabetic_weight_data$diabetes[i] == 1){
+    diabetic_weight_data$diabetes[i] = sample(0:11,1, replace = TRUE)
+  }
+  else if (diabetic_weight_data$diabetes[i] == 2){
+    diabetic_weight_data$diabetes[i] = sample(12:17,1, replace = TRUE)
+  }
+  else if (diabetic_weight_data$diabetes[i] == 3){
+    diabetic_weight_data$diabetes[i] = sample(18:24,1, replace = TRUE)
+  }
+  else if (diabetic_weight_data$diabetes[i] == 4){
+    diabetic_weight_data$diabetes[i] = sample(25:29,1, replace = TRUE)
+  }
+  else if (diabetic_weight_data$diabetes[i] == 5){
+    diabetic_weight_data$diabetes[i] = sample(30:35,1, replace = TRUE)
+  }
+  else if (diabetic_weight_data$diabetes[i] == 6){
+    diabetic_weight_data$diabetes[i] = sample(35:39,1, replace = TRUE)
+  }
+  else if (diabetic_weight_data$diabetes[i] == 7){
+    diabetic_weight_data$diabetes[i] = sample(40:44,1, replace = TRUE)
+  }
+  else if (diabetic_weight_data$diabetes[i] == 8){
+    diabetic_weight_data$diabetes[i] = sample(45:49,1, replace = TRUE)
+  }
+  else if (diabetic_weight_data$diabetes[i] == 9){
+    diabetic_weight_data$diabetes[i] = sample(50:54,1, replace = TRUE)
+  }
+  else if (diabetic_weight_data$diabetes[i] == 10){
+    diabetic_weight_data$diabetes[i] = sample(55:59,1, replace = TRUE)
+  }
+  else if (diabetic_weight_data$diabetes[i] == 11){
+    diabetic_weight_data$diabetes[i] = sample(60:64,1, replace = TRUE)
+  }
+  else if (diabetic_weight_data$diabetes[i] == 12){
+    diabetic_weight_data$diabetes[i] = sample(65:69,1, replace = TRUE)
+  }
+  else if (diabetic_weight_data$diabetes[i] == 13){
+    diabetic_weight_data$diabetes[i] = sample(70:74,1, replace = TRUE)
+  }
+  else if (diabetic_weight_data$diabetes[i] == 14){
+    diabetic_weight_data$diabetes[i] = sample(75:79,1, replace = TRUE)
+  }
+  else if (diabetic_weight_data$diabetes[i] == 15){
+    diabetic_weight_data$diabetes[i] = sample(80:95,1, replace = TRUE)
+  }
+}
+
+```
+
+\newpage
+# Abstract
+This study was done to identify relationships between Diabetes, Sleep and Weight and understand what the potential relationships imply. The dataset that was used was the Canadian Community Health Survey (CCHS) for 2017-2018 which was cleaned and cropped for analysis and used histograms and scatter plots to plot the data. For the analysis, a maximum likelihood estimation and Bayesian estimation along with their respective confidence/credible intervals was used to find estimators for parameters such as $\mu$. Hypothesis testing was also conducted as well as a simple linear regression. From the analysis, we found that Diabetics seem to have less sleep and inconsistent sleep schedules compared to non-diabetics, The average age that diabetes is diagnosed is  52.33 years,  On average 9.3% of Canadians are diabetic and, The younger one is when they are diagnosed with diabetes, the greater their weight. From these findings, we concluded that the diagnosis age for diabetes negatively influences weight (causes it to increase) and diabetes it will negatively influence sleep times and schedules (reduces sleep times and variable sleep schedules) as well.
+
+\newpage
+# Introduction
+
+According World Health Organization (WHO) (n.d.), one person out of eleven has diabetes in the world and it is also a leading cause of death in the world. Diabetes is a sickness which is caused by high blood sugar and We know that changes in blood sugar levels can impact ones sleep, making it difficult to sleep (Editor, 2019). It is an issue which affects many and it can run in the family as well. In light of this, We are interested in exploring Diabetes and Sleep in Canadians as well as how weight influences diabetes. 
+
+We plan on using two specific methods to get estimators for our unknown parameters which are the Maximum Likelihood Estimation (MLE) which is of the Frequentist Framework and Bayesian Estimation from the Bayesian Framework. We will also accompany our estimators with a confidence/credible intervals, which are intervals which denotes an interval which the true unknown parameter can be in with a certain confidence level ($1 - \alpha$) or probability level respectively. Aside from this we will also conduct hypothesis tests to check the estimates against a hypothesis (a claim) and simple linear regression to compare two variables of interest. Through these methods and techniques, we will explore and analyze the relationship between Diabetes, Sleep and Weight and try to better understand the results.
+
+The data we will use for the analysis is the Canadian Community Health Survey (CCHS) for 2017-2018 which was attained from ODESI, which is a repository website which contains thousands of data sets for various topics. We chose this data set as it is fairly recent and it has many observations which will lead to accurate results. The question we wish to analyze is what is the relationship between Diabetes and Sleep and how they influence each other. Based on the prior information, we should also see a difference in people with diabetes and people without it. We should also see a relationship between age that diabetes was diagnosed and sleep and weight. 
+
+# Data
+As stated before, the data we will be using is the Canadian Community Health Survey (CCHS) for 2017-2018. This data set has 1051 variables with over 113,290 observations. In order to gather the variables of interest, we had to look over all the variables in the data set to identify the potential variables of interest, which was done over two days. After identifying the potential variables, we then renamed the variables as they were all in code and required a key to know what the code meant which was in a pdf file therefore, to omit the tedious task of finding the variable key, we decided to rename the variables to allow ease of use during the analysis. After we renamed the variables, we removed the observations which had not entered information for the variables of interest which was quickly done as each variable had a code (9, 96 or 99) which indicated that no information was entered. At the end, the dataset had 17 variables and 95,303 observations.
+
+The following is a list of the important variables that were considered:
+
+* Sex (DHH_SEX) - The gender of the individual
+* Weight (HWTDGWTK) - The weight of individual in kilograms (kg)
+* Diabetes (CCCG100) - The age at which diabetes was diagnosed
+* Daily_sleep (SLPG005) - The amount of time an individual sleeps
+
+The following is an example of some plots we will create and use in the upcoming analysis:
+
+```{r, echo=FALSE, fig.height = 2, fig.width = 5,  fig.align='center'}
+sleep_data %>%  ggplot(aes(x=daily_sleep)) + geom_histogram(bins = 11) +
+  ggtitle("Daily Sleep Frequency (Non-Diabetic Canadians) ") + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5)) +   
+  xlab("Time (Hours)") +                         
+  ylab("Frequency")
+
+```
+This Histogram plot is about the daily sleep frequencies of non-diabetic Canadians. On the x-axis is the time in hours and y-axis is the frequency of individuals. This histogram seems to be normally distributed and we can estimate the mean to be somewhere between 5 and 6 and spread to be 2.
+
+
+```{r, echo=FALSE, fig.height = 2, fig.width = 4 ,fig.align='center'}
+diabetic_weight_data %>% ggplot(aes(weight, diabetes)) + geom_point() +
+  xlim(25, 150) + ylim(0, 200) + 
+  ggtitle("Weight vs Diabetes Diagnosed Age  ") + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5)) +   
+  xlab("Weight (kg)") +                         
+  ylab("Diabetes Diagnosed Age") +
+  geom_abline(slope = -0.09212, intercept = 60.22897, col="red")
+```
+This is a scatter plot we will use in the simple linear regression that we will do. The x-axis is the weight of the individual in kilograms and the y-axis is the age when diabetes was diagnosed. The red line is the regression line and this reveals the relationship between the weight and diabetes diagnosed age.
+
+This analysis will be done using R (programming language) which enables us to clean, manipulate, plot, and calculate various numerical summaries.
+
+
+\newpage
+# Methods - 1
+Let $X_1,X_2,...,X_n \sim N(\mu, \sigma^2)$ be the sleep times of the surveyed individuals without diabetes, which is normally distributed. Note that the data points each represented a range of values eg.(X = 1 -> 0 to 2 hours) so we utilized the impute method to randomly assign a value from the range to each data point. We want to find the Maximum Likelihood estimator for $\mu$ and a confidence interval for $\mu$.
+
+```{r echo=FALSE,  fig.align='center'}
+
+sleep_data %>%  ggplot(aes(x=daily_sleep)) + geom_histogram(bins = 11) +
+  ggtitle("Daily Sleep Frequency (Non-Diabetic Canadians) ") + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5)) +   
+  xlab("Time (Hours)") +                         
+  ylab("Frequency")
+
+```
+
+From our calculation of the maximum likelihood estimators (MLE) (see Appendix A), we got $$\hat \mu_{mle} = \frac{\sum_{i = 1}^n{x_i}}{n} = \bar x$$We know that $\hat \mu_{mle} = \bar x$ is an unbiased and consistent estimator for $\mu$.
+
+Now we calculate a 95% confidence interval for $\mu$ and since the data is normally distributed and $\sigma^2$ is unknown, we will use a T-distribution so then:
+
+$$P(a \leq \bar X \leq b) = 1 - \alpha) \\$$
+$$P(-t_{n-1, \alpha/2} \leq \frac{\bar X - \mu}{{s}/\sqrt{n}} \leq t_{n-1, \alpha/2}) = 0.95 \\$$
+$$\bar X \pm t_{n-1,\alpha/2} \frac{S}{\sqrt{n}}$$
+
+Now we calculate $\bar X$ and S (sample standard deviation) and $t_{n-1, \alpha/2}$ and find them to be:
+```{r echo=FALSE, include=FALSE}
+mean <- mean(sleep_data$daily_sleep) 
+sigma <- sd(sleep_data$daily_sleep) 
+
+t_val <- qt(0.05, nrow(sleep_data))
+```
+
+$$ \bar X = 5.6560 \ \ | \ \ S = 1.3471 \ \ | \ \ t_{n-1, \ \alpha/2} = -1.6449$$
+So then using the formula that we derived, we calculate the 95% confidence interval:
+$$ 5.6560 \ \pm \ 1.6449 \ \frac{1.3471}{\sqrt{44230}}$$
+So then the estimators $\bar X$, $\hat \sigma$, and 95% confidence interval is $$\bar x = 5.6560 \ \ | \ \ S = 1.3471 \\$$
+$$95\% \ CI:(5.6455, 5.6665)$$
+
+# Results - 1
+The Maximum Likelihood estimator for $\mu$ was $\hat \mu_{mle} = \frac{\sum_{i = 1}^n{x_i}}{n} = \bar x$ (see Appendix A). These results are reasonable as they were derived from a normal distribution and we have already noted that $\bar x$ is an unbiased and consistent estimator for $\mu$.
+
+To calculate the confidence interval for $\mu$ (the average time a non-diabetic person sleeps (in hours)), we first found the average and standard deviation from the sample to be $\bar X = 5.6560$ hrs (which is also our MLE) and $S = 1.3471$ hrs. Then we found the confidence interval to be $95\% \ CI: \ (5.6455, 5.6665)$. So we are 95% confident that individuals sleep on average 5.6455 hrs to 5.6665 hrs per day. This result is reasonable as our sample size is very large (44230), the sample mean will be a very good approximation of $\mu$ and based on our plot, we can intuitively see this as well as the most of the individuals filling the surveys likely have a job which may account for why the average time is that low. Since our sample size is very large, our confidence interval is also quite tight which is also very good as $\mu$ has an even smaller range of values it take.
+
+\newpage
+# Methods - 2
+Let $X_i$ be the amount of sleep the ith individual gets (hours). Now we would like to find the average sleep (in hours) of diabetic Canadians to compare it to the overall average sleep times of non-diabetic patients to see whether people with diabetes sleep less compared to regular people.
+ 
+```{r echo=FALSE, fig.align='center'}
+set.seed(12345)
+# Plot the sleep data, we have removed the valid skipped entries.
+dia_sleep <- dataset %>% filter(daily_sleep != 96, diabetes != 96) %>% select(daily_sleep) 
+
+for (i in 1:length(dia_sleep)){
+  if (dia_sleep$daily_sleep[i] == 1){
+    dia_sleep$daily_sleep[i] = sample(0:2,1,replace = TRUE)
+  }
+  if (dia_sleep$daily_sleep[i] == 2){
+    dia_sleep$daily_sleep[i] = sample(3,1,replace = TRUE)
+  }
+  if (dia_sleep$daily_sleep[i] == 3){
+    dia_sleep$daily_sleep[i] = sample(4,1,replace = TRUE)
+  }
+  if (dia_sleep$daily_sleep[i] == 4){
+    dia_sleep$daily_sleep[i] = sample(5,1,replace = TRUE)
+  }
+  if (dia_sleep$daily_sleep[i] == 5){
+    dia_sleep$daily_sleep[i] = sample(6,1,replace = TRUE)
+  }
+  if (dia_sleep$daily_sleep[i] == 6){
+    dia_sleep$daily_sleep[i] = sample(7,1,replace = TRUE)
+  }
+  if (dia_sleep$daily_sleep[i] == 7){
+    dia_sleep$daily_sleep[i] = sample(8,1,replace = TRUE)
+  }
+  if (dia_sleep$daily_sleep[i] == 8){
+    dia_sleep$daily_sleep[i] = sample(9,1,replace = TRUE)
+  }
+  if (dia_sleep$daily_sleep[i] == 9){
+    dia_sleep$daily_sleep[i] = sample(10,1,replace = TRUE)
+  }
+  if (dia_sleep$daily_sleep[i] == 10){
+    dia_sleep$daily_sleep[i] = sample(11,1,replace = TRUE)
+  }
+  if (dia_sleep$daily_sleep[i] == 11){
+    dia_sleep$daily_sleep[i] = sample(12:15,1,replace = TRUE)
+  }
+}
+
+dia_sleep %>%  ggplot(aes(x=daily_sleep)) + geom_histogram(bins = 11) +
+  ggtitle("Daily Sleep Frequency (Diabetic Canadians) ") + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5)) +   
+  xlab("Time (Hours)") +                         
+  ylab("Frequency")
+  
+```
+Similar to the calculations of the average sleep times of Canadians and the Confidence interval, we compute the 95% confidence interval for $\mu_D$ (the average time (hours) a diabetic Canadian sleeps) as well as the point estimate for $\mu_D$, which is also the MLE $\bar X_D$:
+
+Since the data is normally distributed and $\sigma^2$ is unknown, we will use a T-distribution 
+
+$$\bar X_D \pm t_{n-1,\alpha/2} \frac{S}{\sqrt{n}}$$
+
+Now we calculate $\bar X_D$ and S (sample standard deviation) and $t_{n-1, \alpha/2}$ and find them to be:
+```{r echo=FALSE, include=FALSE}
+mean <- mean(dia_sleep$daily_sleep) 
+sigma <- sd(dia_sleep$daily_sleep) 
+
+t_val <- qt(0.05, nrow(dia_sleep))
+```
+
+$$ \bar X_D = 5.554 \ \ | \ \ S = 1.6613 \ \ | \ \ t_{n-1, \ \alpha/2} = -1.6452$$
+So then using the formula for the interval, we calculate the 95% confidence interval:
+$$ 5.554 \ \pm \ 1.6452 \ \frac{1.6613}{\sqrt{4021}}$$
+So then the estimators $\bar X_D$, $\hat \sigma$, and 95% confidence interval is $$\bar x = 5.554 \ \ | \ \ S = 1.6613 \\$$
+$$95\% \ CI_D:(5.5109, 5.5971)$$
+
+# Results - 2
+The average sleep time for diabetic Canadians was $\bar X_D = 5.554$ and the 95% confidence interval $(5.5109, 5.5971)$. We can see that $\bar X_D = 5.554$ is less than $\bar X = 5.6560$ and the $95\% \ CI_D = (5.5109, 5.5971)$ is also more wider than $95\% \ CI = (5.6455,5.6665)$ which shows that $\mu_D$ be in a larger range of values with 95% confidence. According to an article by Pacheco and Dr.Singh (2020), one quarter of diabetic patients report getting less than 6 hours of sleep per night and also states that they usually have irregular sleep times as well. These results are in-line with our analysis as we have seen from the results we observed. 
+
+\newpage
+# Methods - 3
+Out of our sample of 95,303 Canadians, the proportion who have diabetes is: 8773/95303 = 0.0921 or 9.21%. We want to analyze the age at which these Canadians (who already have diabetes) developed diabetes. We will first find an estimator for the average age $\mu$ using the Bayesian Framework and then find the 90% Bayesian Credibility Interval. Since the data values were categorical with a range (eg. X = 1 -> 0 to 11 years), we used the impute method to randomly assign values to the data for each respective range. The following plot depicts the distribution of the age at which people got diabetes.
+
+```{r echo=FALSE,  fig.align='center'}
+
+set.seed(123)
+
+diabetes_data <- dataset %>%  filter(diabetes != 96) %>% select(diabetes)
+
+for (i in 1:8773) {
+  if (diabetes_data$diabetes[i] == 1){
+    diabetes_data$diabetes[i] = sample(0:11,1, replace = TRUE)
+  }
+  else if (diabetes_data$diabetes[i] == 2){
+    diabetes_data$diabetes[i] = sample(12:17,1, replace = TRUE)
+  }
+  else if (diabetes_data$diabetes[i] == 3){
+    diabetes_data$diabetes[i] = sample(18:24,1, replace = TRUE)
+  }
+  else if (diabetes_data$diabetes[i] == 4){
+    diabetes_data$diabetes[i] = sample(25:29,1, replace = TRUE)
+  }
+  else if (diabetes_data$diabetes[i] == 5){
+    diabetes_data$diabetes[i] = sample(30:35,1, replace = TRUE)
+  }
+  else if (diabetes_data$diabetes[i] == 6){
+    diabetes_data$diabetes[i] = sample(35:39,1, replace = TRUE)
+  }
+  else if (diabetes_data$diabetes[i] == 7){
+    diabetes_data$diabetes[i] = sample(40:44,1, replace = TRUE)
+  }
+  else if (diabetes_data$diabetes[i] == 8){
+    diabetes_data$diabetes[i] = sample(45:49,1, replace = TRUE)
+  }
+  else if (diabetes_data$diabetes[i] == 9){
+    diabetes_data$diabetes[i] = sample(50:54,1, replace = TRUE)
+  }
+  else if (diabetes_data$diabetes[i] == 10){
+    diabetes_data$diabetes[i] = sample(55:59,1, replace = TRUE)
+  }
+  else if (diabetes_data$diabetes[i] == 11){
+    diabetes_data$diabetes[i] = sample(60:64,1, replace = TRUE)
+  }
+  else if (diabetes_data$diabetes[i] == 12){
+    diabetes_data$diabetes[i] = sample(65:69,1, replace = TRUE)
+  }
+  else if (diabetes_data$diabetes[i] == 13){
+    diabetes_data$diabetes[i] = sample(70:74,1, replace = TRUE)
+  }
+  else if (diabetes_data$diabetes[i] == 14){
+    diabetes_data$diabetes[i] = sample(75:79,1, replace = TRUE)
+  }
+  else if (diabetes_data$diabetes[i] == 15){
+    diabetes_data$diabetes[i] = sample(80:95,1, replace = TRUE)
+  }
+}
+
+diabetes_data %>% ggplot(aes(x=diabetes)) + geom_histogram(bins = 50) +
+  ggtitle("Diabetes Diagnosed Age Frequency ") + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5)) +   
+  xlab("Age (Years)") +                         
+  ylab("Frequency")
+```
+Based on the plot, the data seems to be normally distributed so we will use a normal distribution and estimate the parameter $\mu$ using the Bayesian framework. The Bayesian model is another way to estimate a true parameter (in this case $\mu$), it utilizes two key things to estimate the parameter, the given data and a prior (any information we may have prior to the estimation). Then we combine the 2 pieces of information to get the posterior distribution and from that, a beyesian estimator, which we can use to find an estimate for the parameter.
+
+For the prior, based on the plot, $\mu$ seems to be between 6 and 11 so we will use a normal distribution with mean = 54 and variance = 9. We use the sample standard variance ($\hat \sigma^2$) for $\sigma^2$ as it is assumed to be known.
+
+
+So then our Bayesian Model is:
+$$
+X_1,...,X_{8773} \sim N(\mu, \sigma^2_0) \\ 
+$$
+$$\mu \sim N(54, 9)$$
+Since both the likelihood (function attained based on the data) and prior are normally distributed, we know that the posterior distribution is also normally distributed which is: 
+
+$$\mu|x_1,...,x_n,\sigma_0^2 \sim N(\frac{\mu_0/\tau^2_0 + n\bar{x}/\sigma^2_0}{1/\tau^2_0 + n/\sigma^2_0}, \frac{1}{1/\tau^2_0 + n/\sigma^2_0})$$
+
+To get the beyesian estimator, we use the expectation of the posterior distribution:
+$$ 
+\hat{\mu}_{\text{bayes}} = E(\mu | X_1, ..., X_n, \sigma^2_0) = \frac{\mu_0/\tau^2_0 + n\bar{x}/\sigma^2_0}{1/\tau^2_0 + n/\sigma^2_0}
+$$
+
+```{r, include=FALSE}
+
+n <- length(diabetes_data$diabetes)
+mean <- mean(diabetes_data$diabetes)
+
+# From Prior
+mu_0 <- 54
+var_sq_0 <- 9
+
+# The Known variance
+sigma_sq_0 <- var(diabetes_data$diabetes)
+
+
+numerator <- mu_0/var_sq_0 + n*mean / sigma_sq_0
+denominator <- 1/var_sq_0 + n/sigma_sq_0
+
+est <- numerator / denominator
+est
+```
+
+Using the equation, we get the average to be: $$\hat{\mu}_{\text{bayes}} = 52.33 \ \text{yrs}$$
+
+Now to get the 90% Bayesian Credible Interval, we find the posterior distribution to be:
+
+$$\mu|x_1,...,x_n,\sigma_0^2 \sim N(52.33, 0.027)$$
+
+```{r, echo=FALSE, include=FALSE}
+upper_lim <- qnorm(0.95,mean = 52.3673, sd = 0.0269,lower.tail = TRUE)
+lower_lim <- qnorm(0.05,mean = 52.3673, sd = 0.0269,lower.tail = TRUE)
+```
+
+Then the 90% credible interval is found using the posterior distribution and $\alpha/2 = 0.05$ which is: 
+
+$$90\% \ CI: \ (52.3231, 52.4116)$$
+
+# Results - 3
+So based on our data and prior, on average Canadians who have diabetes were first diagnosed with it at the age of $\hat{\mu}_{\text{bayes}} = 52.33$ ~53 years. This is a reasonable result and is close to what we had originally believed it to be and the plotted sample distribution seemed to be slightly left-skewed which implied that the mean would be towards the left of the mode (peak of data). One thing to note is that since the data has many observations (8773), the prior will have little effect on the estimator as much as the data would because as n increases, the less influence the prior has on the final estimate. 
+
+The Bayesian credible interval is $90\% \ CI: \ (52.3231, 52.4116)$. The true average age is contained between 52.3231 and 52.4116 years with 90% probability. This interval is acceptable and quite accurate and tight, because of the sample size we worked with (8773 observations). Using our estimator for the average age that diabetes is diagnosed, we can use these kinds of statistics and apply them to help individuals (with a family history of diabetes or are nearing this kind of age) take precautionary measures to prevent or reduce the chances of getting diabetes. 
+
+
+\newpage
+# Methods - 4
+
+In 2015, the estimated diabetic Canadians were 9.3% or 0.093 of all Canadians (Robyn L, n.d.). We believe that the estimated diabetic Canadians is less than 9.3% as in the previous model regarding the Canadians with diabetes, we found that the number of diabetic Canadians in the sample of 95303 Canadians is 8773. We want to do a one-sided hypothesis test to see how usual/unusual is our outcome being less than 9.3%.  
+
+## Hypothesis
+
+$$H_o = p =  0.093 \\$$
+$$H_a = p < 0.093$$
+We will first find the sample statistic and then test it assuming the null hypothesis ($H_o = p =  0.093$) to be true.
+
+## Sample Statistic
+
+$$\hat p = 8773/95303 = 0.0921$$
+$$n = 95303$$
+
+We know that $\hat p = N(p, \frac{p(1-p)}{n})$ if Central Limit Theorem applies which it does. So then assuming $H_o$ is true, $\hat p$ has a distribution:
+
+$$ \hat p \sim N(0.093, \frac{0.093(1-0.093)}{95303} )$$
+Now we check How unusual is 0.0921 if the average is 9.3%.
+
+## Test statistic
+
+
+To find the p-value, we first find the Z-value using:
+
+$$Z = \frac{\hat p - p_o}{\sqrt{\frac{p_o(1-p_o)}{n}}} = \frac{0.0921 - 0.093}{\sqrt{\frac{0.093(0.907)}{95303}}} = -0.9566$$ 
+```{r, echo=FALSE, fig.height = 2, fig.width = 3 ,fig.align='center'}
+X <- c(-4,4)
+ggplot(NULL, aes(X)) + 
+  geom_area(stat = "function", fun = dnorm, fill = "grey", xlim = c(-0.9566, 4)) +
+  geom_area(stat = "function", fun = dnorm, fill = "blue", xlim = c(-4, -0.9566)) +
+  ylab('Density') + theme_minimal() + theme(plot.title = element_text(hjust = 0.5)) + 
+  ggtitle("Standard Normal Distribution")
+   
+```
+
+Then the p-value is:
+
+$$
+\text{p-value} = P(Z < -0.9566) = 0.1694
+$$
+
+# Results - 4
+## Interpretation & Conclusion
+The p value is $\text{p-value} = 0.1694$. So there is a 16.94% chance that we will see a difference of least 0.09% from the average 9.3% in a sample of 95303 Canadians. Since the p-value is quite large, there is an absence of evidence against the null hypothesis $H_o$ so the data is consistent with $H_o$.
+
+
+\newpage
+# Methods - 5
+Diabetes also usually entails weight gain as blood sugar levels can become more difficult to control (Dowshen, 2018). We wanted to observe how the age at which diabetes was diagnosed relates to the weight of the individual. So we first plot our collect our data which is the ages at which diabetes was diagnosed and the weights of the individuals and we plot the data:
+```{r echo=FALSE,  fig.align='center'}
+diabetic_weight_data %>% ggplot(aes(weight, diabetes)) + geom_point() +
+  xlim(25, 150) + ylim(0, 200) +
+  ggtitle("Weight vs Diabetes Diagnosed Age  ") + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5)) +   
+  xlab("Weight (kg)") +                         
+  ylab("Diabetes Diagnosed Age")
+```
+Since we see a linear relationship between weight and diagnosed age based on the plot, we will use a simple linear regression model which allows us to find and describe the linear relationship between two variables.
+
+The model is defined to be:
+$$
+Y_i = \beta_0 + \beta_1x_i + \epsilon_i \\
+$$
+$$\epsilon_i \sim N(0, \sigma^2)$$
+
+where $x_i$ is the ith weight (not random), and $Y_i$ is the diagnosed age of the ith weight (random variable). We are interested in estimating $\beta_1$ which is the slope of the regression line, which also describes the linear relationship of the variables. 
+
+```{r include=FALSE}
+model <- lm(diabetes ~ weight, data = diabetic_weight_data)
+model
+```
+
+The estimate $\hat{\beta}_1$ is: $$\hat{\beta}_1 = -0.09212$$ 
+
+The following is the plot with the regression line (red):
+```{r, echo=FALSE,fig.align='center'}
+diabetic_weight_data %>% ggplot(aes(weight, diabetes)) + geom_point() +
+  xlim(25, 150) + ylim(0, 200) + 
+  ggtitle("Weight vs Diabetes Diagnosed Age  ") + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5)) +   
+  xlab("Weight (kg)") +                         
+  ylab("Diabetes Diagnosed Age") +
+  geom_abline(slope = -0.09212, intercept = 60.22897, col="red")
+```
+
+# Results - 5
+
+The estimate, $\hat {\beta}_1$ for ${\beta}_1$ is equal to -0.09212. From the linear regression we conclude that on average, between 40 and 135 kg, the diagnosed age decreased by -0.09212 each weight increase. This shows is that the younger one was diagnosed with diabetes, the more their weight is and this suggests that an individual's blood sugar level may fluctuate causing one to retain or gain weight if diabetes is diagnosed at an early age however, to attain profound results, we must account for variables such as weight at time of diagnosis as being overweight, poor diet can increase the risks of diabetes as well.
+
+
+\newpage
+# Conclusions
+
+In the first analysis, we analyzed the frequency of non-diabetic Canadians and their sleep times, we calculated the MLE for $\mu$ (the average sleep time of non-diabetic Canadians). We also found that the estimator for 
+$\mu$ was $\bar X =  5.6560$ also found the 95% confidence interval for $\mu$ using the t-distribution since the data was normally distributed and noted that it was $95\% \ CI_D: 5.6455,5.6665$. Note that this confidence interval is tight so we have a better idea of what $\mu$ can be and that the average sleep time of a non-diabetic Canadian is between 5.6455 and 5.6665 hours daily, with 95% confidence.
+
+In the second analysis, this time, we analyzed the frequency of diabetic Canadians and their sleep times and we used $\bar X_D$ to be 5.554 and 95% Confidence interval, $95\% \ CI_D: 5.5109,5.5971$. We noted that $\bar X_D$ was less than $\bar X$ and $95\% CI_D$ was much wider compared to $95\% CI$m which depicted the results were in line with the article that we had previously mentioned (Pacheco et al., 2020). For both, the first and second analysis, we used the Frequentist framework.
+
+In the third analysis, we wanted to analyze the age (in years) at which Diabetic Canadians were diagnosed with diabetes. We plotted a histogram to see the distribution of the various ages and found it to be normally distributed. We used a Bayesian Model
+and found that the beyesian point estimate for $\mu$ (the average age of diagnosis), $\hat \mu_{beyes} = 52.33$ years and got a 90% credible interval of (52.3231,52.4116). 
+
+In the fourth analysis, we conducted a hypothesis test to check the estimated proportion of diabetic Canadians, the claim ($H_o$) was that 9.3% of Canadians were diabetic, from our sample we got that $H_a$ was less that 9.3% and attained a p-value of 0.1694 and deemed that there is no evidence against the null hypothesis and the data was consistent with $H_o$.
+
+In the last analysis, we used a linear regression model to find the relationship between weight and the age of diagnosis for diabetes. We seemed to depict that the younger
+one was diagnosed with diabetes, the more their weight is. However, we stated that more research and analysis must be done to attain more profound results as we must take into account variable such as weight at the time of diagnosis which may have influenced our results.
+
+Our initial hypothesis before the analysis was that we will see a relationship between age at which diabetes was diagnosed, weight and sleep. Based on the results, our hypothesis was indeed correct based on our sample. Based on our sample, We conclude that:
+
+* Diabetics do seem to have less sleep daily and don't have a formal sleep schedule therefore Diabetes negatively influences sleep times.
+* The estimated average age that diabetes is diagnosed is 52.33 years with a 90% credible interval (52.3231,52.4116).
+* On average, 9.3% of Canadians are diabetic and from our sample, we got a similar average of 9.21% which is inline with the observations of the article by Robyn L (n.d)
+* The younger one was diagnosed with diabetes, the more their weight is, therefore the age of diabetes diagnosis negatively affects one's weight.
+
+\newpage
+# Bibliography
+
+&nbsp;&nbsp;&nbsp;&nbsp; Dowshen, S. (Ed.). (2018, February). Weight and
+diabetes (for parents) - nemours kidshealth. KidsHealth. 
+https://kidshealth.org/en/parents/weight-diabetes.html#:~:text=Weight%20and%
+20Type%202%20Diabetes&amp;text=Also%2C%20weight%20gain%20in%20people,move%20
+glucose%20
+into%20the%20cells.
+
+&nbsp;&nbsp;&nbsp;&nbsp; Editor, &amp; Editor. (2019, January 15). Sleep can
+affect your blood sugar levels and your blood glucose control can also affect
+your sleep, which results in trouble sleeping. Diabetes.
+https://www.diabetes.co.uk/diabetes-and-sleep.html. 
+
+&nbsp;&nbsp;&nbsp;&nbsp; Robyn L., H. (n.d.). The Challenge of Diabetes.
+DiabetesCanadaWebsite. https://www.diabetes.ca/health-care-providers/
+clinical-practice-guidelines/chapter-1#panel-tab_FullText. 
+
+&nbsp;&nbsp;&nbsp;&nbsp; Pacheco, D., &amp; Singh, A. (2020, November 20).
+Diabetes and sleep: Sleep disturbances &amp; coping. Sleep Foundation. 
+https://www.sleepfoundation.org/physical-health/lack-of-sleep-and-diabetes#
+:~:text=Researchers%20believe%20that%20sleep%20restriction,having%20elevated%
+20blood%20sugar12. 
+
+&nbsp;&nbsp;&nbsp;&nbsp; WHO. (n.d.). Diabetes. World Health Organization.
+https://www.who.int/health-topics/diabetes#tab=tab_1. 
+
+ 
+\newpage
+# Appendix A
+
+Since the data is normally distributed, we will find the MLE of $\mu$.
+
+$f(x_1,...,x_n| \mu, \sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}} e^{-1/2\frac{x_i-\mu}{\sigma}}$
+
+Likelihood Function:
+$$
+L(\mu, \sigma^2) = \prod_{i=1}^n{f(x_1,...,x_n| \mu, \sigma^2)} = \frac{1}{\sqrt{2\pi\sigma^2}} e^{-1/2\frac{x_i-\mu}{\sigma}}  \\
+$$
+$$
+L(\mu, \sigma^2) = \prod_{i=1}^n({2\pi\sigma^2})^{-1/2} e^{-1/2\frac{(x_i-\mu)^2}{\sigma}}  \\
+$$
+
+$$
+L(\mu, \sigma^2) = ({2\pi\sigma^2})^{-n/2} e^{-1/2\sigma^2\sum_{i=1}^n{(x_i-\mu)^2}}  \\
+$$
+
+Now we maximize:
+$$
+l(\mu, \sigma^2) = \frac{-n}{2} \ log({2\pi\sigma^2}) - \frac{1}{2\sigma^2}\sum_{i=1}^n{(x_i-\mu)^2}  \\
+$$
+
+$$
+l(\mu, \sigma^2) = \frac{-n}{2} \ log({2\pi}) - \frac{n}{2} \ log({\sigma^2}) - \frac{1}{2\sigma^2}\sum_{i=1}^n{(x_i-\mu)^2}  \\
+$$
+
+$$
+\frac{\partial \ l(\mu, \sigma^2)}{\partial \ \mu} = \frac{2}{2\sigma^2}\sum_{i=1}^n{(x_i-\mu)} = 0
+$$
+
+Now we use partial derivatives to find $\mu$
+$$
+\frac{\partial \ l(\mu, \sigma^2)}{\partial \ \mu} = \sum_{i=1}^n{(x_i)}-n\mu = 0
+$$
+
+$$
+\frac{\partial \ l(\mu, \sigma^2)}{\partial \ \mu} = \hat \mu = \frac{\sum_{i = 1}^n{x_i}}{n} = \bar x
+$$
+
+2nd derivative Test (with respect to $\mu$)
+$$
+\frac{\partial^2 \ l(\mu, \sigma^2)}{\partial \ \mu^2} = \frac{1}{\sigma^2}\sum_{i = 1}^n{(x_i-\mu)} = \frac{- \ n}{\sigma^2} < 0 \ \ (\text{since} \ n \geq 0)
+$$
+
+The second derivative passes therefore the Maximum Likelihood Estimator for $\mu$ is:
+$$
+\hat \mu_{MLE} = \frac{\sum_{i = 1}^n{x_i}}{n} = \bar x
+$$
